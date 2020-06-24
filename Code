@@ -1,0 +1,54 @@
+import requests, json, datetime
+
+day = datetime.date.today() + datetime.timedelta(days=1)
+
+load = float(input("Enter Average Load requirement for " + str(day) + " in watt hours:"))
+a = float(input("Enter Solar efficiency:"))
+b = float(input("Enter area covered by solar panels (in m sqare):"))
+A = float(input("Enter Rotor Swept Area:"))
+Cp = float(input("Enter coefficient of performance:"))
+Ng = float(input("Enter Generator efficiency:"))
+Nb = float(input("Enter Gear box efficiency:"))
+d = float(input("Air Density:"))
+t = float(input("Average time of wind blowing(in hrs):"))
+def MyFunc():
+
+
+    Ssum = 0
+    Wsum = 0
+    Tsum = 0
+
+    city_name = input("Enter city name : ")
+    api_key = "Enter your API key HERE!!"
+    base_url = "http://api.openweathermap.org/data/2.5/weather?"
+    complete_url = base_url + "appid=" + api_key + "&q=" + city_name
+    response = requests.get(complete_url)
+
+    x = response.json()
+
+    if x["cod"] != "404":
+        w = x["wind"]
+        c = x["clouds"]
+        wind_speed = w["speed"]
+        cloud_percentage = c["all"]
+
+        V = float(wind_speed)
+
+        Ssum = a * 990*(1-(0.75*(cloud_percentage*cloud_percentage*cloud_percentage)/1000000)) * b * 6
+        Wsum = (0.5 * d * A * Cp * V * V * V * Ng * Nb * t)
+        Tsum = Ssum + Wsum
+
+        print("Total DCMG Power Availabe for day " + str(day) + " is " + str(Tsum) + " watt hours.")
+
+        if (Tsum - load > 0):
+            print("power availabe for export: " + str(Tsum - load) + " Watt hours for " + str(day) + " .")
+        elif (Tsum - load < 0):
+            print("Power needed to be import: " + str(Tsum - load) + " Watt hours for " + str(day) + " .")
+        else:
+            print("No need to either import or export power for " + str(day) + " .")
+    else:
+        print(" City Not Found ")
+        MyFunc()
+
+
+MyFunc()
